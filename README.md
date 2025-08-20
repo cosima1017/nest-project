@@ -55,7 +55,7 @@ $ pnpm run test:cov
 
 ```bash
 # init
-$ npm i  prisma @prisma/client
+$ pnpm i  prisma @prisma/client
 $ npx prisma
 # 连接上数据库的情况下
 $ npx db pull #拉取数据库相关模型
