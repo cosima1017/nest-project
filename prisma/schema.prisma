@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model departments {
+  id              Int                @id @default(autoincrement())
+  name            String             @db.VarChar(50)
+  code            String             @unique(map: "idx_code") @db.VarChar(50)
+  parentId        Int?               @map("parent_id")
+  leader          String?            @db.VarChar(50)
+  phone           String?            @db.VarChar(20)
+  email           String?            @db.VarChar(100)
+  sort            Int?               @default(0)
+  status          Boolean            @default(true)
+  createdAt       DateTime           @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime           @default(now()) @map("updated_at") @db.DateTime(0)
+  createdBy       Int?               @map("created_by")
+  updatedBy       Int?               @map("updated_by")
+  userDepartments user_departments[]
+
+  @@index([parentId], map: "idx_parent_id")
+  @@map("departments")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model dict_data {
+  id         Int        @id @default(autoincrement())
+  dictTypeId Int        @map("dict_type_id")
+  label      String     @db.VarChar(50)
+  value      String     @db.VarChar(50)
+  sort       Int?       @default(0)
+  status     Boolean    @default(true)
+  remark     String?    @db.VarChar(255)
+  createdAt  DateTime   @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt  DateTime   @default(now()) @map("updated_at") @db.DateTime(0)
+  createdBy  Int?       @map("created_by")
+  updatedBy  Int?       @map("updated_by")
+  dictTypes  dict_types @relation(fields: [dictTypeId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_dict_data_dict_type_id")
+
+  @@index([dictTypeId], map: "idx_dict_type_id")
+  @@map("dict_data")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model dict_types {
+  id          Int         @id @default(autoincrement())
+  name        String      @db.VarChar(50)
+  code        String      @unique(map: "idx_code") @db.VarChar(50)
+  description String?     @db.VarChar(255)
+  status      Boolean     @default(true)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime    @default(now()) @map("updated_at") @db.DateTime(0)
+  createdBy   Int?        @map("created_by")
+  updatedBy   Int?        @map("updated_by")
+  dictData    dict_data[]
+
+  @@map("dict_types")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model file_uploads {
+  id           Int      @id @default(autoincrement())
+  userId       Int?     @map("user_id")
+  originalName String   @map("original_name") @db.VarChar(255)
+  fileName     String   @map("file_name") @db.VarChar(255)
+  filePath     String   @map("file_path") @db.VarChar(255)
+  fileUrl      String?  @map("file_url") @db.VarChar(255)
+  fileSize     Int      @map("file_size")
+  fileType     String?  @map("file_type") @db.VarChar(50)
+  fileExt      String?  @map("file_ext") @db.VarChar(10)
+  storage      String?  @default("local") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  createdBy    Int?     @map("created_by")
+
+  @@index([createdAt], map: "idx_created_at")
+  @@index([userId], map: "idx_user_id")
+  @@map("file_uploads")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model permissions {
+  id              Int                @id @default(autoincrement())
+  name            String             @db.VarChar(50)
+  parentId        Int?               @map("parent_id")
+  path            String?            @db.VarChar(255)
+  component       String?            @db.VarChar(255)
+  redirect        String?            @db.VarChar(255)
+  icon            String?            @db.VarChar(50)
+  sort            Int?               @default(0)
+  hidden          Boolean?           @default(false)
+  alwaysShow      Boolean?           @default(false) @map("always_show")
+  keepAlive       Boolean?           @default(false) @map("keep_alive")
+  status          Boolean            @default(true)
+  meta            String?            @db.Text
+  createdAt       DateTime           @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime           @default(now()) @map("updated_at") @db.DateTime(0)
+  createdBy       Int?               @map("created_by")
+  updatedBy       Int?               @map("updated_by")
+  rolePermissions role_permissions[]
+
+  @@index([parentId], map: "idx_parent_id")
+  @@map("permissions")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model role_permissions {
+  id           Int         @id @default(autoincrement())
+  roleId       Int         @map("role_id")
+  permissionId Int         @map("permission_id")
+  createdAt    DateTime    @default(now()) @map("created_at") @db.DateTime(0)
+  createdBy    Int?        @map("created_by")
+  permissions  permissions @relation(fields: [permissionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_role_permissions_permission_id")
+  roles        roles       @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_role_permissions_role_id")
+
+  @@unique([roleId, permissionId], map: "idx_role_permission")
+  @@index([permissionId], map: "idx_permission_id")
+  @@map("role_permissions")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model roles {
+  id              Int                @id @default(autoincrement())
+  name            String             @db.VarChar(50)
+  code            String             @unique(map: "idx_code") @db.VarChar(50)
+  description     String?            @db.VarChar(255)
+  status          Boolean            @default(true)
+  createdAt       DateTime           @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime           @default(now()) @map("updated_at") @db.DateTime(0)
+  createdBy       Int?               @map("created_by")
+  updatedBy       Int?               @map("updated_by")
+  rolePermissions role_permissions[]
+  userRoles       user_roles[]
+
+  @@map("roles")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_departments {
+  id           Int         @id @default(autoincrement())
+  userId       Int         @map("user_id")
+  departmentId Int         @map("department_id")
+  createdAt    DateTime    @default(now()) @map("created_at") @db.DateTime(0)
+  createdBy    Int?        @map("created_by")
+  departments  departments @relation(fields: [departmentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_departments_department_id")
+  users        users       @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_departments_user_id")
+
+  @@unique([userId, departmentId], map: "idx_user_department")
+  @@index([departmentId], map: "idx_department_id")
+  @@map("user_departments")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_roles {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  roleId    Int      @map("role_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  createdBy Int?     @map("created_by")
+  roles     roles    @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_roles_role_id")
+  users     users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_roles_user_id")
+
+  @@unique([userId, roleId], map: "idx_user_role")
+  @@index([roleId], map: "idx_role_id")
+  @@map("user_roles")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model users {
+  id              Int                @id @default(autoincrement())
+  username        String             @unique(map: "idx_username") @db.VarChar(50)
+  password        String             @db.VarChar(255)
+  nickname        String?            @db.VarChar(50)
+  email           String?            @db.VarChar(100)
+  phone           String?            @db.VarChar(20)
+  avatar          String?            @db.VarChar(255)
+  status          Boolean            @default(true)
+  lastLoginTime   DateTime?          @map("last_login_time") @db.DateTime(0)
+  lastLoginIp     String?            @map("last_login_ip") @db.VarChar(50)
+  createdAt       DateTime           @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt       DateTime           @default(now()) @map("updated_at") @db.DateTime(0)
+  createdBy       Int?               @map("created_by")
+  updatedBy       Int?               @map("updated_by")
+  userDepartments user_departments[]
+  userRoles       user_roles[]
+
+  @@index([email], map: "idx_email")
+  @@index([phone], map: "idx_phone")
+  @@map("users")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model map_markers {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(200)
+  description Json?
+  latitude    Decimal  @db.Decimal(10, 8)
+  longitude   Decimal  @db.Decimal(11, 8)
+  address     String?  @db.VarChar(500)
+  iconUrl     String?  @map("icon_url") @db.VarChar(255)
+  markerColor String?  @map("marker_color") @db.VarChar(20)
+  isVisible   Boolean? @default(true) @map("is_visible")
+  createdBy   Int?     @map("created_by")
+  updatedBy   Int?     @map("updated_by")
+  status      Boolean? @default(true)
+  createdAt   DateTime @default(now()) @map("created_at") @db.DateTime(0)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.DateTime(0)
+
+  @@index([latitude, longitude], map: "idx_location")
+  @@index([status, isVisible], map: "idx_status")
+}

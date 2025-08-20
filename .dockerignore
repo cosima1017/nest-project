@@ -1,0 +1,16 @@
+# 忽略所有文件和目录
+*
+
+# 保留必要的文件和目录
+!package.json
+!pnpm-lock.yaml
+!dist/
+!src/
+!*.ts
+!*.js
+!tsconfig.json
+!.dockerignore
+!.env
+
+# 忽略测试文件
+**/*.spec.ts
